@@ -66,15 +66,16 @@ mcp.add_middleware(
 4. If violations found and strict mode enabled → raises `SecurityException`
 5. Otherwise → chain to next middleware
 
-## Rules
+## Default Security Rules
 
-Detects:
+- **Prompt Injection** → Detects attempts to override system instructions.
+- **PII Detection** → Detects phone numbers and card numbers.
+- **Secret Leakage** → Detects exposed API keys and credentials.
+- **Dangerous Eval/Exec** → Detects unsafe code execution patterns.
+- **SQL Injection** → Detects malicious database commands.
+- **Path Traversal** → Detects unauthorized file access attempts.
+- **Shell Command Abuse** → Detects dangerous shell command chaining and piping.
 
-Current Default Rule 
-
-- **Prompt Injection** - "ignore previous instructions", "override instructions"
-- **Secret Leakage** - AWS keys (AKIA...), OpenAI keys (sk-...)
-- **PII** - 10/16 digit sequences
 
 Add custom rules in `rules.py`:
 ```python

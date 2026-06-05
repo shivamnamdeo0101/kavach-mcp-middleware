@@ -5,13 +5,13 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="kavach-mcp",
-    version="0.1.3",
+    version="0.1.5",
     description="Security middleware for Model Context Protocol (MCP) that detects and blocks malicious tool calls",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Shivam Namdeo",
     author_email="shivamnamdeo0101@gmail.com",
-    url="https://github.com/yourusername/kavach-mcp-middleware",
+    url="https://github.com/shivamnamdeo0101/kavach-mcp-middleware",
     license="MIT",
     packages=find_packages(),
     python_requires=">=3.7",

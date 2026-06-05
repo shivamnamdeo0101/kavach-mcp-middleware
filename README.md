@@ -2,8 +2,7 @@
 
 Security middleware for Model Context Protocol (MCP) that detects and blocks malicious tool calls using pattern-based rule scanning.
 
-**Built by [Shivam Namdeo](https://www.linkedin.com/in/shivamnamdeo0101/)** | [PyPI Package](https://pypi.org/project/kavach-mcp/) | 
-[Use Cases](https://github.com/shivamnamdeo0101/kavach-mcp-middleware-use-cases) 
+**Built by [Shivam Namdeo](https://www.linkedin.com/in/shivamnamdeo0101/)** | [PyPI Package](https://pypi.org/project/kavach-mcp/) | [Use Cases](https://github.com/shivamnamdeo0101/kavach-mcp-middleware-use-cases) 
 
 ## Quick Start
 

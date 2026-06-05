@@ -27,6 +27,7 @@ python3 app.py
 
 ## How It Works
 
+### Sync: Content-based Blocking
 ```python
 from kavach import KavachMiddleware
 
@@ -41,11 +42,29 @@ result = middleware.process({
 # Returns: {"allowed": False, "violations": [...]}
 ```
 
+### Async: FastMCP Middleware Integration
+```python
+from fastmcp import FastMCP
+from kavach import KavachMiddleware
+
+mcp = FastMCP("my-server")
+mcp.add_middleware(
+    KavachMiddleware(
+        sensitive_tools=[
+            "filesystem.delete",
+            "aws.*",           # wildcard patterns
+            "database.execute"
+        ]
+    )
+)
+```
+
 **Flow:**
-1. Tool call is converted to string
-2. `DetectionEngine` scans text against all rule patterns (regex)
-3. If violations found and strict mode enabled → blocked
-4. Otherwise → allowed
+1. Tool call intercepted by `on_call_tool()` middleware hook
+2. Tool name matched against `sensitive_tools` patterns
+3. If matched, `DetectionEngine` scans arguments against rules
+4. If violations found and strict mode enabled → raises `SecurityException`
+5. Otherwise → chain to next middleware
 
 ## Rules
 
@@ -66,13 +85,49 @@ Rule(
 
 ## Usage
 
+### Option 1: Default Rules Only
 ```python
-# Allow all (strict=False)
+middleware = KavachMiddleware()
+```
+
+### Option 2: Extend Defaults with Custom Rules
+```python
+from kavach.types import Rule
+import re
+
+custom_rules = [
+    Rule(
+        id="custom-ban",
+        name="Custom Ban",
+        severity="high",
+        description="Ban specific phrases",
+        patterns=[re.compile(r"dangerous\s+action", re.I)]
+    )
+]
+
+middleware = KavachMiddleware(
+    rules=custom_rules,
+    extend_rules=True  # Merge with KAVACH_RULES (default)
+)
+```
+
+### Option 3: Replace Defaults with Custom Rules
+```python
+middleware = KavachMiddleware(
+    rules=custom_rules,
+    extend_rules=False  # Use ONLY custom rules
+)
+```
+
+### Option 4: Control Tool Access
+```python
+# Allow violations in non-sensitive tools
 middleware = KavachMiddleware(strict=False)
 
-# Use custom rules
-custom_rules = [Rule(...)]
-middleware = KavachMiddleware(rules=custom_rules)
+# Protect specific tools
+middleware = KavachMiddleware(
+    sensitive_tools=["filesystem.delete", "aws.s3.delete_bucket"]
+)
 ```
 
 ## Project Structure
@@ -88,6 +143,21 @@ kavach-mcp-middleware/
 └── example/
     └── app.py            # Example usage
 ```
+
+## API Reference
+
+### `KavachMiddleware.__init__()`
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `rules` | `List[Rule]` | `KAVACH_RULES` | Custom detection rules |
+| `strict` | `bool` | `True` | Raise exception (True) or return blocked result (False) |
+| `sensitive_tools` | `List[str]` | `[]` | Tools to protect (exact match or wildcard patterns) |
+| `extend_rules` | `bool` | `True` | Merge custom rules with defaults (True) or replace (False) |
+
+### Methods
+- `process(tool_call: dict)` - Sync content scanning. Returns `{"allowed": bool, ...}`
+- `async on_call_tool(context, call_next)` - FastMCP async middleware hook
+- `register_tool(tool_name: str)` - Add tool to sensitive_tools at runtime
 
 ## Contributing
 

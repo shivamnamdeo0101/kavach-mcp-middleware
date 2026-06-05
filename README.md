@@ -69,6 +69,9 @@ mcp.add_middleware(
 ## Rules
 
 Detects:
+
+Current Default Rule 
+
 - **Prompt Injection** - "ignore previous instructions", "override instructions"
 - **Secret Leakage** - AWS keys (AKIA...), OpenAI keys (sk-...)
 - **PII** - 10/16 digit sequences

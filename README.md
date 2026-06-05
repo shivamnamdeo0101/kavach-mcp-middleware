@@ -143,7 +143,8 @@ kavach-mcp-middleware/
 │   ├── middleware.py     # Main middleware class
 │   ├── engine.py         # Detection logic
 │   ├── rules.py          # Security rules
-│   └── types.py          # Data classes
+│   ├── types.py          # Data classes
+│   └── exceptions.py     # Security exceptions
 └── example/
     └── app.py            # Example usage
 ```

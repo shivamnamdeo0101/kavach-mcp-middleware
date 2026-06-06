@@ -68,22 +68,32 @@ mcp.add_middleware(
 
 ## Default Security Rules
 
-- **Prompt Injection** → Detects attempts to override system instructions.
-- **PII Detection** → Detects phone numbers and card numbers.
-- **Secret Leakage** → Detects exposed API keys and credentials.
-- **Dangerous Eval/Exec** → Detects unsafe code execution patterns.
-- **SQL Injection** → Detects malicious database commands.
-- **Path Traversal** → Detects unauthorized file access attempts.
-- **Shell Command Abuse** → Detects dangerous shell command chaining and piping.
+## 🛡️ Default Security Rules (Kavach)
 
+- **Prompt Injection** → Blocks attempts to override instructions (e.g., "ignore previous instructions", "act as admin")
+- **Data Exfiltration** → Blocks leaking system data (e.g., "send system prompt", "dump secrets")
+- **PII Detection** → Blocks personal data (e.g., phone numbers, credit cards, Aadhaar)
+- **Secret Leakage** → Blocks API keys/tokens (e.g., AWS key, `sk-xxxx`, private keys)
+- **Code Execution** → Blocks unsafe execution (e.g., `eval()`, `exec()`, `os.system`)
+- **SQL Injection** → Blocks DB attacks (e.g., `DROP TABLE`, `UNION SELECT`, `' OR '1'='1`)
+- **Path Traversal** → Blocks file escape (e.g., `../../etc/passwd`)
+- **Filesystem Destruction** → Blocks dangerous deletes (e.g., `rm -rf /`, delete `/root`)
+- **Cloud Destruction** → Blocks cloud deletes (e.g., delete S3 bucket, terminate instance)
+- **Shell Injection** → Blocks command chaining (e.g., `|| rm -rf`, `&& drop database`)
+- **Tool Abuse** → Blocks unsafe MCP tools (e.g., `filesystem.delete`, `aws.s3.delete_bucket`)
 
-Add custom rules in `rules.py`:
+---
+
+## 🚀 Custom Rules
+
+You can easily add your own rules:
+
 ```python
 Rule(
     id="custom-rule",
-    name="Rule Name",
+    name="Custom Rule",
     severity="high",
-    patterns=[re.compile(r"pattern")]
+    patterns=[re.compile(r"dangerous\s+action")]
 )
 ```
 
@@ -135,8 +145,7 @@ middleware = KavachMiddleware(
 ```
 
 ### Custom Logger | Maksing Logging
-
-***Kavach logger is fully pluggable. You can replace output layer without modifying detection engine or middleware.
+**Kavach logger is fully pluggable. You can replace output layer without modifying detection engine or middleware.**
 
 ```python
 from kavach.logger.setup import enable_logging, enable_masking
@@ -165,20 +174,15 @@ enable_masking(True)
 LoggerManager().set_logger(CustomLogger())
 ```
 
-## Project Structure
+## 🔁 Custom Logger & Masking Override — Useful For?
 
-```
-kavach-mcp-middleware/
-├── kavach/
-│   ├── __init__.py       # Package exports
-│   ├── middleware.py     # Main middleware class
-│   ├── engine.py         # Detection logic
-│   ├── rules.py          # Security rules
-│   ├── types.py          # Data classes
-│   └── exceptions.py     # Security exceptions
-└── example/
-    └── app.py            # Example usage
-```
+This feature helps you control how Kavach handles logging in real-world production systems.
+
+- **Custom Logger** → Send logs to your own system (Datadog, Kafka, ELK, CloudWatch, files)
+- **Masking** → Hide sensitive data like API keys, tokens, and passwords in logs
+- **Override Logger** → Replace default logging without modifying core Kavach code
+- **Production Debugging** → Debug safely without exposing secrets
+- **Compliance Ready Logs** → Helps meet SOC2 / enterprise security standards
 
 ## API Reference
 

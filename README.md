@@ -134,6 +134,37 @@ middleware = KavachMiddleware(
 )
 ```
 
+### Custom Logger | Maksing Logging
+
+***Kavach logger is fully pluggable. You can replace output layer without modifying detection engine or middleware.
+
+```python
+from kavach.logger.setup import enable_logging, enable_masking
+from kavach.logger.logger_manager import LoggerManager
+from kavach.logger.base_logger import BaseLogger
+
+class CustomLogger(BaseLogger):
+
+    def info(self, msg, **kwargs):
+        print(f"[MY SYSTEM INFO] {msg}")
+
+    def error(self, msg, **kwargs):
+        print(f"[MY SYSTEM ERROR] {msg}")
+
+    def debug(self, msg, **kwargs):
+        print(f"[MY SYSTEM DEBUG] {msg}")
+
+
+# Step 1: Enable system logging -> turns logging ON/OFF
+enable_logging(True)
+
+# Step 2: Enable masking -> masks secrets in logs
+enable_masking(True)
+
+# Step 3: Replace logger -> replaces default logger completely
+LoggerManager().set_logger(CustomLogger())
+```
+
 ## Project Structure
 
 ```

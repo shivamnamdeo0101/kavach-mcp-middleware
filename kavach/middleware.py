@@ -5,6 +5,9 @@ from fastmcp.server.middleware import Middleware, MiddlewareContext
 from .engine import DetectionEngine
 from .rules import KAVACH_RULES
 from .exceptions import SecurityException
+from .logger.setup import get_logger, mask_sensitive_data
+
+logger = get_logger("kavach.middleware")
 
 class KavachMiddleware(Middleware):
     """FastMCP middleware for security threat detection and blocking"""
@@ -23,6 +26,8 @@ class KavachMiddleware(Middleware):
         self.engine = DetectionEngine(self.rules)
         self.strict = strict
         self.sensitive_tools = set(sensitive_tools or [])
+        
+        logger.info(f"Kavach initialized | strict={strict} | rules={len(self.rules)} | tools={len(self.sensitive_tools)}")
     
     async def __call__(self, context: MiddlewareContext, call_next: Callable) -> Any:
         """Main middleware entry point - routes to on_call_tool"""
@@ -45,9 +50,14 @@ class KavachMiddleware(Middleware):
             if self._matches_pattern(tool_name):
                 violations = self.engine.scan(str(context.message.arguments))
                 if violations and self.strict:
+                    logger.warning(f"Tool blocked | {tool_name} | violations={len(violations)}")
                     raise SecurityException(
                         f"Blocked By : Kavach Security Layer : Tool '{tool_name}' blocked: {violations}"
                     )
+                elif violations:
+                    logger.debug(f"Tool allowed (non-strict) | {tool_name} | violations={len(violations)}")
+            else:
+                logger.debug(f"Tool scanned | {tool_name}")
         except AttributeError:
             # Message type doesn't have 'name' attribute (e.g., InitializeRequest) - bypass safely
             pass
@@ -57,8 +67,13 @@ class KavachMiddleware(Middleware):
     def process(self, tool_call: dict):
         """Synchronous tool call processor with threat detection"""
         violations = self.engine.scan(str(tool_call))
+        masked_call = mask_sensitive_data(str(tool_call))
         
         if violations and self.strict:
+            logger.warning(f"Call blocked | violations={len(violations)} | severity={violations[0].get('severity', 'unknown')} | data={masked_call}")
             raise SecurityException(f"Blocked By : Kavach Security Layer : Violations: {violations}")
+        elif violations:
+            logger.debug(f"Call allowed (non-strict) | violations={len(violations)} | data={masked_call}")
         
+        logger.debug(f"Call passed security scan | data={masked_call}")
         return {"allowed": True, "data": tool_call}
